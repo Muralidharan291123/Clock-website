@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+  <title>Murali's World Digital Clock</title>
+  <style>
+    /* 🔥 Animated Gradient Background */
+    body {
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(270deg, #ff416c, #ff4b2b, #1d2b64, #f8cdda);
+      background-size: 800% 800%;
+      animation: gradientMove 20s ease infinite;
+      color: white;
+      font-family: "Segoe UI", sans-serif;
+      padding-top: 70px; /* Space for fixed navbar */
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Navbar */
+    .navbar-custom {
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    .navbar-custom .navbar-brand {
+      color: #fff;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    /* Glassmorphism Card */
+    .clock-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      padding: 30px;
+      text-align: center;
+      max-width: 500px;
+      width: 90%;
+      margin: auto;
+    }
+
+    #time {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-top: 10px;
+      color: #fff;
+      text-shadow: 0 0 15px #ff416c, 0 0 30px #ff4b2b;
+    }
+
+    #date {
+      font-size: 1.2rem;
+      margin-top: 10px;
+      opacity: 0.9;
+    }
+
+    /* Like/Dislike Buttons */
+    .btn-like, .btn-dislike {
+      border: none;
+      padding: 10px 20px;
+      font-size: 1.1rem;
+      margin: 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-like:hover, .btn-dislike:hover {
+      transform: scale(1.1);
+    }
+    .btn-like {
+      background-color: #28a745;
+      color: white;
+    }
+    .btn-dislike {
+      background-color: #dc3545;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <!-- 🔹 Top Navbar -->
+  <nav class="navbar navbar-dark navbar-expand-lg fixed-top navbar-custom px-3">
+    <a class="navbar-brand" href="#">
+      👋 Welcome to Indian Digital Clock by <span style="color:#ffcc70;">Muralidharan</span>
+    </a>
+    <form class="d-flex ms-auto" onsubmit="searchCity(event)">
+      <input id="cityInput" class="form-control me-2" list="cityList" placeholder="Search City" required>
+      <datalist id="cityList">
+        <option value="Asia/Kolkata">
+        <option value="America/New_York">
+        <option value="Europe/London">
+        <option value="Asia/Tokyo">
+        <option value="Australia/Sydney">
+        <option value="Europe/Paris">
+        <option value="America/Los_Angeles">
+        <option value="Asia/Dubai">
+        <option value="Africa/Johannesburg">
+        <option value="America/Chicago">
+      </datalist>
+      <button class="btn btn-light" type="submit"><i class="bi bi-search"></i></button>
+    </form>
+  </nav>
+
+  <!-- 🔹 Clock Card -->
+  <div class="clock-card">
+    <h1 id="cityName">Asia/Kolkata <i class="bi bi-geo-alt"></i></h1>
+    <div>
+      <i class="bi bi-clock-fill fs-3"></i>
+      <h2 id="time"></h2>
+    </div>
+    <div>
+      <i class="bi bi-calendar-fill fs-3"></i>
+      <h4 id="date"></h4>
+    </div>
+
+    <!-- Like / Dislike -->
+    <div>
+      <button class="btn-like" onclick="addLike()">
+        <i class="bi bi-hand-thumbs-up-fill"></i> Like <span id="likeCount">0</span>
+      </button>
+      <button class="btn-dislike" onclick="addDislike()">
+        <i class="bi bi-hand-thumbs-down-fill"></i> Dislike <span id="dislikeCount">0</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 🔹 Script -->
+  <script>
+    let currtime = document.getElementById('time');
+    let currdate = document.getElementById('date');
+    let cityName = document.getElementById('cityName');
+    let likeCountEl = document.getElementById('likeCount');
+    let dislikeCountEl = document.getElementById('dislikeCount');
+
+    // Default city timezone
+    let currentTimeZone = "Asia/Kolkata";
+
+    // Load like/dislike counts from localStorage
+    let likeCount = parseInt(localStorage.getItem("likeCount")) || 0;
+    let dislikeCount = parseInt(localStorage.getItem("dislikeCount")) || 0;
+
+    likeCountEl.textContent = likeCount;
+    dislikeCountEl.textContent = dislikeCount;
+
+    function timer() {
+      let dateobj = new Date();
+      let time = dateobj.toLocaleTimeString('en-IN', { timeZone: currentTimeZone });
+      let date = dateobj.toLocaleDateString('en-IN', { 
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+        timeZone: currentTimeZone
+      });
+      currtime.textContent = time;
+      currdate.textContent = date;
+    }
+
+    // Search City
+    function searchCity(event) {
+      event.preventDefault();
+      let city = document.getElementById('cityInput').value.trim();
+
+      try {
+        // Validate timezone
+        new Date().toLocaleString("en-US", { timeZone: city }); 
+        currentTimeZone = city;
+        cityName.innerHTML = city + " <i class='bi bi-geo-alt'></i>";
+      } catch (e) {
+        alert("❌ Invalid city/timezone. Try like 'Asia/Tokyo' or 'America/New_York'");
+      }
+    }
+
+    // Like/Dislike Feedback with Counter
+    function addLike() {
+      likeCount++;
+      localStorage.setItem("likeCount", likeCount);
+      likeCountEl.textContent = likeCount;
+    }
+
+    function addDislike() {
+      dislikeCount++;
+      localStorage.setItem("dislikeCount", dislikeCount);
+      dislikeCountEl.textContent = dislikeCount;
+    }
+
+    timer();
+    setInterval(timer, 1000);
+  </script>
+</body>
+</html>
